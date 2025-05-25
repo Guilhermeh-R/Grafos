@@ -49,23 +49,40 @@ class Grafo:
         plt.title("Rede de Distribuição de Água - Grafo Exemplo")
         plt.grid(True)
         plt.show()
+    
+    def desenhar_com_residual(self, capacidades, origem=None, destino=None):
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+
+        for aresta in self.arestas:
+            v1 = self.vertices[aresta.origem]
+            v2 = self.vertices[aresta.destino]
+
+            ax.plot([v1.x, v2.x], [v1.y, v2.y], 'k-')
+
+            # Exibir capacidades residuais
+            cap_dir = capacidades.get((aresta.origem, aresta.destino), 0)
+            cap_rev = capacidades.get((aresta.destino, aresta.origem), 0)
+
+            mx = (v1.x + v2.x) / 2
+            my = (v1.y + v2.y) / 2
+            ax.text(mx, my + 0.3, f'{cap_dir}/{aresta.capacidade}', color='blue', fontsize=8)
+            ax.text(mx, my - 0.3, f'{cap_rev}', color='red', fontsize=8)
+
+        for v in self.vertices.values():
+            ax.plot(v.x, v.y, 'ro')
+            label = f"{v.id}"
+            if origem is not None and v.id == origem:
+                label += " (origem)"
+            if destino is not None and v.id == destino:
+                label += " (destino)"
+            ax.text(v.x + 0.2, v.y, label, fontsize=10, fontweight='bold')
+
+        ax.set_aspect('equal')
+        plt.title("Grafo Residual com Fluxos")
+        plt.grid(True)
+        plt.show()
 
 
-# =========================
-# EXEMPLO DE USO ABAIXO:
-# =========================
 
-g = Grafo()
-
-# Adicionando vértices com posições (x, y)
-g.adicionar_vertice(0, 0, 0)    # Fonte
-g.adicionar_vertice(1, 2, 2)    # Intermediário
-g.adicionar_vertice(2, 4, 0)    # Destino
-
-# Adicionando arestas com capacidade
-g.adicionar_aresta(0, 1, 50)    # 0 → 1 com capacidade 50
-g.adicionar_aresta(1, 2, 30)    # 1 → 2 com capacidade 30
-g.adicionar_aresta(0, 2, 20)    # 0 → 2 com capacidade 20
-
-# Desenha o grafo
-g.desenhar()
