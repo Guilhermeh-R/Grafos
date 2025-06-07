@@ -101,6 +101,6 @@ def build_graph_from_csv(csv_path: str | Path,
 if __name__ == "__main__":
     csv_path = Path(__file__).with_name("rede.csv")
 
-    grafo = build_graph_from_csv(csv_path, 10)  # limite opcional
+    grafo = build_graph_from_csv(csv_path, 500)  # limite opcional
     print("Vértices:", len(grafo.vertices), "| Arestas:", len(grafo.arestas))
     grafo.desenhar()
