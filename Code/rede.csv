@@ -1,4 +1,4 @@
-﻿source,source_x,source_y,target,target_x,target_y,capacity_m3_day,distance_km,directionAdd commentMore actions
+source,source_x,source_y,target,target_x,target_y,capacity_m3_day,distance_km,direction
 Source_Rio_Grande,100,1000,Treatment_Alpha,500,900,12000,25,unidirectional
 Source_Aquifer_Beta,300,1050,Treatment_Alpha,500,900,8000,15,unidirectional
 Source_Spring_Gamma,800,1100,Treatment_Beta,1000,950,6000,20,unidirectional
