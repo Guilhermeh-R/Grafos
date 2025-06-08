@@ -116,3 +116,33 @@ class Grafo:
         ax.set_axis_off()
         plt.title("Grafo residual (capacidades restantes)")
         plt.show()
+
+    def aumentar_capacidade_aresta(self, origem, destino, incremento):
+        """Aumenta a capacidade de uma aresta existente."""
+        for aresta in self.arestas:
+            if aresta.origem == origem and aresta.destino == destino:
+                aresta.capacidade += incremento
+                return True
+        print(f"Aresta de {origem} para {destino} não encontrada.")
+        return False
+    def reduzir_capacidade_aresta(self, origem, destino, decremento):
+        """Reduz a capacidade de uma aresta existente, mas não abaixo de zero."""
+        for aresta in self.arestas:
+            if aresta.origem == origem and aresta.destino == destino:
+                if aresta.capacidade >= decremento:
+                    aresta.capacidade -= decremento
+                    return True
+                else:
+                    print(f"Capacidade insuficiente para reduzir de {aresta.capacidade} por {decremento}.")
+                    return False
+        print(f"Aresta de {origem} para {destino} não encontrada.")
+        return False
+    
+    def remover_aresta(self, origem, destino):
+        """Remove uma aresta existente."""
+        for i, aresta in enumerate(self.arestas):
+            if aresta.origem == origem and aresta.destino == destino:
+                del self.arestas[i]
+                return True
+        print(f"Aresta de {origem} para {destino} não encontrada.")
+        return False
