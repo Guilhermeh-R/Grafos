@@ -1,0 +1,22 @@
+@startuml diagrama-caso-de-uso
+actor "Operador do Sistema" as Operador
+
+rectangle "Sistema de Gerenciamento de Rede" {
+    usecase "Escolher Algoritmo de Fluxo Máximo" as UC1
+    usecase "Carregar Dados da Rede" as UC2
+    usecase "Filtrar Tubulações Inativas" as UC3
+    usecase "Simular Falhas na Rede" as UC4
+    usecase "Calcular Fluxo Máximo" as UC5
+    usecase "Sugerir Rota Alternativa" as UC6
+    usecase "Visualizar Resultados" as UC7 
+}
+
+Operador --> UC1
+Operador --> UC2
+Operador --> UC3
+Operador --> UC4
+
+UC1 --> UC5 : <<include>>
+UC5 --> UC6 : <<extends>>
+UC5 --> UC7 : <<extends>>
+@enduml

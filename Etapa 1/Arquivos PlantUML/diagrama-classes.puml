@@ -1,0 +1,55 @@
+@startuml diagrama-classes
+' =================== CLASSES PRINCIPAIS ===================
+class RedeDeAgua {
+  - vertices : List<No>
+  - arestas  : List<Tubo>
+  + carregar_dados()
+  + filtrar_tubos_inativos()
+  + construir_grafo()
+}
+
+class No {
+  + id   : str
+  + tipo : str
+}
+
+class Tubo {
+  + origem     : No
+  + destino    : No
+  + capacidade : float
+  + fluxo      : float
+  + status     : string
+}
+
+class AlgoritmoFluxoMaximo {
+  + calcular_fluxo_maximo(g : RedeDeAgua) : float
+  - construir_rede_residual()
+  - encontrar_caminho_aumentante()
+  - atualizar_fluxos()
+  - caminho_disponivel() : bool
+}
+
+class RedeResidual {
+  - arestas_residuais : List<Tubo>
+  + gerar_a_partir(g : RedeDeAgua)
+  + obter_caminho(orig : No, dest : No) : List<Tubo>
+}
+
+' =================== RELACIONAMENTOS ===================
+' Rede → Nós e Tubos
+RedeDeAgua "1" o-- "*" No
+RedeDeAgua "1" o-- "*" Tubo
+
+' Tubo conecta dois nós
+Tubo "1" --* "2" No
+
+' Algoritmo usa a Rede (dependência – seta tracejada)
+RedeDeAgua ..> AlgoritmoFluxoMaximo : usa
+
+' Algoritmo compõe uma Rede Residual interna
+AlgoritmoFluxoMaximo *-- "1" RedeResidual : constrói
+
+' Rede Residual contém Tubos residuais
+RedeResidual "1" o-- "*" Tubo
+
+@enduml

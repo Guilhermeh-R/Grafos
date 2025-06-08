@@ -1,0 +1,35 @@
+@startuml diagrama-de-atividades
+start
+
+:Importar dados da rede;
+:Construir grafo com vértices e arestas;
+:Filtrar arestas com status inativo;
+
+if (Rede conectada?) then (sim)
+    :Selecionar algoritmo de fluxo máximo;
+    :Construir rede residual;
+
+    repeat
+        :Encontrar caminho aumentante;
+        :Atualizar fluxos na\nrede residual;
+      repeat while (Caminho disponível?)
+
+    :Salvar fluxo total;
+
+    :Simular falhas nos tubos críticos;
+
+    if (Existe nova rota?) then (sim)
+        :Gerar rede residual\n(após falha);
+        :Recalcular fluxo máximo;
+        :Comparar impacto da falha;
+    else (não)
+        :Notificar ruptura crítica;
+    endif
+
+    :Visualizar resultados;
+else
+    :Erro de conectividade;
+endif
+
+stop
+@enduml
