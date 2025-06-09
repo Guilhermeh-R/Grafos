@@ -5,9 +5,11 @@ def main():
     grafo = carregar_grafo_de_csv(caminho)
 
     origem = "Source_Spring_Gamma"
-    destino = "Demand_Tourism"
+    destino = "Demand_Agriculture"
 
-    grafo.exibir_fluxo_maximo(origem, destino)  # Desenha grafo com fluxo máximo
+    grafo.exibir_fluxo_maximo(origem, destino)  # Desenha grafo com fluxo maximo
+    
+    ##tem que fazer o menuzinho interativo
 
 if __name__ == "__main__":
     main()
