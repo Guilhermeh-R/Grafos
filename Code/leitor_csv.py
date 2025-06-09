@@ -15,8 +15,8 @@ def carregar_grafo_de_csv(caminho_arquivo):
             target_x = float(linha['target_x'])
             target_y = float(linha['target_y'])
 
-            capacidade = float(linha['capacity_m3_day'])/100  # voltar pra normal, so p facilitar visualizacao
-            distancia = float(linha['distance_km']) 
+            capacidade = float(linha['capacity_m3_day'])  # novo nome da coluna
+            distancia = float(linha['distance_km'])       # novo nome da coluna
             direcao = linha['direction'].strip().lower()
 
             grafo.adicionar_aresta(
@@ -29,7 +29,7 @@ def carregar_grafo_de_csv(caminho_arquivo):
 
 
 if __name__ == "__main__":
-    caminho = 'rede.csv' 
+    caminho = 'rede.csv'  # Substitua pelo caminho do seu arquivo
     grafo = carregar_grafo_de_csv(caminho)
     print(grafo)
     grafo.exibir_grafo()
