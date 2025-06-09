@@ -1,99 +1,61 @@
-# main.py
-# ---------------------------------------------------------------------------
-# Interface simples em linha de comando
-# 1) escolhe quantos trechos do CSV carregar
-# 2) calcula fluxo máximo (Edmonds-Karp) entre dois vértices
-# 3) exibe grafo residual
-# ---------------------------------------------------------------------------
+import tkinter as tk
+from tkinter import messagebox
+from leitor_csv import carregar_grafo_de_csv
 
-from pathlib import Path
-from readcsv import build_graph_from_csv        # já lê, filtra e monta Grafo
-from fluxoMaximo import edmonds_karp
-from grafo import Grafo
+# Carrega o grafo
+grafo = carregar_grafo_de_csv('rede.csv')
+todos_vertices = list(grafo.vertices.keys())
 
-CSV_DEFAULT = Path(__file__).with_name("rede.csv")
+# Interface Visual
+root = tk.Tk()
+root.title("Fluxo de Abastecimento")
+root.geometry("500x400")
 
+label = tk.Label(root, text="Fluxo de Abastecimento - Escolha uma opção:", font=("Arial", 14))
+label.pack(pady=10)
 
-def criar_grafo() -> Grafo:
-    csv_path = input(f"⮞ CSV [{CSV_DEFAULT}]: ").strip() or CSV_DEFAULT
-    while True:
-        try:
-            n = int(input("⮞ Quantos trechos carregar (0 = todos): "))
-            break
-        except ValueError:
-            print("Digite um número inteiro.")
-    g = build_graph_from_csv(csv_path, None if n == 0 else n)
-    print(f"[OK] Grafo com {len(g.vertices)} vértices e {len(g.arestas)} arestas.")
-    return g
+# Seletor de origem
+frame_origem = tk.Frame(root)
+tk.Label(frame_origem, text="Origem:").pack(side=tk.LEFT)
+var_origem = tk.StringVar(value=todos_vertices[0])
+menu_origem = tk.OptionMenu(frame_origem, var_origem, *todos_vertices)
+menu_origem.pack(side=tk.LEFT)
+frame_origem.pack(pady=5)
 
+# Seletor de destino
+frame_destino = tk.Frame(root)
+tk.Label(frame_destino, text="Destino:").pack(side=tk.LEFT)
+var_destino = tk.StringVar(value=todos_vertices[1])
+menu_destino = tk.OptionMenu(frame_destino, var_destino, *todos_vertices)
+menu_destino.pack(side=tk.LEFT)
+frame_destino.pack(pady=5)
 
-def escolher_vertice(g: Grafo, label: str) -> str:
-    """
-    Solicita ao usuário o id do vértice.
-    • Digite “listar” para exibir todos os ids disponíveis.
-    """
-    while True:
-        v = input(f"⮞ Id do vértice {label} (ou 'listar'): ").strip()
-        if v.lower() == "listar":
-            print("\nIds disponíveis:")
-            for vid in g.vertices:
-                print("  ", vid)
-            continue
-        if v in g.vertices:
-            return v
-        print("Id inexistente – tente de novo.")
+# Funções com origem/destino dinâmicos
+def exibir_grafo():
+    grafo.exibir_grafo()
 
+def calcular_fluxo():
+    origem = var_origem.get()
+    destino = var_destino.get()
+    fluxoValor, _ = grafo.calcular_fluxo_maximo(origem, destino)
+    grafo.exibir_fluxo_maximo(origem, destino)
+    messagebox.showinfo("Fluxo Máximo", f"Fluxo máximo de '{origem}' para '{destino}': {fluxoValor} m³/dia")
 
-def mostrar_menu():
-    print("\n=== MENU ===")
-    print("1  Criar/recargar grafo")
-    print("2  Estatísticas rápidas")
-    print("3  Desenhar grafo")
-    print("4  Fluxo máximo + grafo residual")
-    print("0  Sair")
+def sugerir_cano():
+    origem = var_origem.get()
+    destino = var_destino.get()
+    grafo.exibir_fluxo_e_gargalo(origem, destino)
 
+def sair():
+    root.destroy()
 
-def main():
-    grafo: Grafo | None = None
-    residual = None
+# Botões
+botao_a = tk.Button(root, text="A - Exibir Grafo", width=40, command=exibir_grafo)
+botao_b = tk.Button(root, text="B - Calcular Fluxo Máximo", width=40, command=calcular_fluxo)
+botao_d = tk.Button(root, text="D - Sugerir Cano para Aumentar Capacidade", width=40, command=sugerir_cano)
+botao_e = tk.Button(root, text="Sair", width=40, command=sair)
 
-    while True:
-        mostrar_menu()
-        op = input("Opção: ").strip()
+for botao in [botao_a, botao_b, botao_d, botao_e]:
+    botao.pack(pady=6)
 
-        if op == "1":
-            grafo = criar_grafo()
-            residual = None
-
-        elif op == "2":
-            if not grafo:
-                print("Crie o grafo primeiro.")
-                continue
-            print(f"Vértices: {len(grafo.vertices)} | Arestas: {len(grafo.arestas)}")
-
-        elif op == "3":
-            if not grafo:
-                print("Crie o grafo primeiro.")
-                continue
-            grafo.desenhar()
-
-        elif op == "4":
-            if not grafo:
-                print("Crie o grafo primeiro.")
-                continue
-            src = escolher_vertice(grafo, "origem")
-            dst = escolher_vertice(grafo, "destino")
-            fluxo, residual = edmonds_karp(grafo, src, dst)
-            print(f"Fluxo máximo de {src} → {dst}: {fluxo}")
-            # desenha grafo residual, se seu Grafo tiver esse método
-            if hasattr(grafo, "desenhar_com_residual"):
-                grafo.desenhar_com_residual(residual, src, dst)
-
-        elif op == "0":
-            break
-        else:
-            print("Opção inválida.")
-
-
-if __name__ == "__main__":
-    main()
+root.mainloop()
