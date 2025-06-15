@@ -18,7 +18,7 @@ label.pack(pady=10)
 
 # Seletor de origem
 frame_origem = tk.Frame(root)
-tk.Label(frame_origem, text="Origem:").pack(side=tk.LEFT)
+tk.Label(frame_origem, text=origem).pack(side=tk.LEFT)
 var_origem = tk.StringVar(value=todos_vertices[0])
 menu_origem = tk.OptionMenu(frame_origem, var_origem, *todos_vertices)
 menu_origem.pack(side=tk.LEFT)
@@ -26,7 +26,7 @@ frame_origem.pack(pady=5)
 
 # Seletor de destino
 frame_destino = tk.Frame(root)
-tk.Label(frame_destino, text="Destino:").pack(side=tk.LEFT)
+tk.Label(frame_destino, text=destino).pack(side=tk.LEFT)
 var_destino = tk.StringVar(value=todos_vertices[1])
 menu_destino = tk.OptionMenu(frame_destino, var_destino, *todos_vertices)
 menu_destino.pack(side=tk.LEFT)

@@ -46,7 +46,7 @@ class Grafo:
 
     def adicionar_aresta(self, nome_origem, x_origem, y_origem,
                          nome_destino, x_destino, y_destino,
-                         capacidade, distancia, direcao):
+                         capacidade, distancia):
         origem = self.adicionar_vertice(nome_origem, x_origem, y_origem)
         destino = self.adicionar_vertice(nome_destino, x_destino, y_destino)
         aresta = Aresta(origem, destino, capacidade, distancia)
@@ -97,7 +97,7 @@ class Grafo:
             dist = random.uniform(1.0, 10.0)
             grafo.adicionar_aresta(u, grafo.vertices[u].x, grafo.vertices[u].y,
                                     v, grafo.vertices[v].x, grafo.vertices[v].y,
-                                    cap, dist, "unidirectional")
+                                    cap, dist)
             arestas_usadas.add((u, v))
 
     
@@ -111,7 +111,7 @@ class Grafo:
             dist = random.uniform(1.0, 10.0)
             grafo.adicionar_aresta(u, grafo.vertices[u].x, grafo.vertices[u].y,
                                     v, grafo.vertices[v].x, grafo.vertices[v].y,
-                                    cap, dist, )
+                                    cap, dist )
             arestas_usadas.add((u, v))
 
         return grafo, origem, destino
