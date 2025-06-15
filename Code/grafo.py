@@ -91,8 +91,12 @@ class Grafo:
         for i in range(len(caminho_basico) - 1):
             u = caminho_basico[i]
             v = caminho_basico[i + 1]
+
             if (u, v) in arestas_usadas or (v, u) in arestas_usadas:
                 continue
+            if v == origem or u == destino:
+                continue  # impede chegada na origem e saída do destino
+
             cap = random.choice(range(capacidade_min, capacidade_max + 1, 5))
             dist = random.uniform(1.0, 10.0)
             grafo.adicionar_aresta(u, grafo.vertices[u].x, grafo.vertices[u].y,
