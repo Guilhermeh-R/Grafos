@@ -1,9 +1,11 @@
 import tkinter as tk
 from tkinter import messagebox
+from grafo import Grafo
 from leitor_csv import carregar_grafo_de_csv
 
 # Carrega o grafo
-grafo = carregar_grafo_de_csv('rede.csv')
+#grafo = carregar_grafo_de_csv('rede.csv')
+grafo, origem, destino = Grafo.gerar_grafo_direcionado(5, 9)
 todos_vertices = list(grafo.vertices.keys())
 
 # Interface Visual
@@ -33,6 +35,10 @@ frame_destino.pack(pady=5)
 # Funções com origem/destino dinâmicos
 def exibir_grafo():
     grafo.exibir_grafo()
+
+
+var_destino= destino
+var_origem = origem
 
 def calcular_fluxo():
     origem = var_origem.get()

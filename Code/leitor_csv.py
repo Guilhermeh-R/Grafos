@@ -22,7 +22,7 @@ def carregar_grafo_de_csv(caminho_arquivo):
             grafo.adicionar_aresta(
                 source, source_x, source_y,
                 target, target_x, target_y,
-                capacidade, distancia, direcao
+                capacidade, direcao
             )
 
     return grafo
