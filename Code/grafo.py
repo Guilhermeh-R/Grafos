@@ -1,6 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 from collections import deque, defaultdict
+import random
 
 class Vertice:
     def __init__(self, nome, x=None, y=None):
@@ -8,6 +9,7 @@ class Vertice:
         self.x = x
         self.y = y
         self.arestas = []
+        nx.gnm_random_graph
 
     def adicionar_aresta(self, aresta):
         self.arestas.append(aresta)
@@ -25,13 +27,47 @@ class Aresta:
         self.direcao = direcao 
 
     def __repr__(self):
-        return (f"Aresta({self.origem.nome} -> {self.destino.nome}, "
+        return (f" ({self.origem.nome} -> {self.destino.nome}, "
                 f"capacidade={self.capacidade}, distancia={self.distancia}, direcao={self.direcao})")
 
 
 class Grafo:
     def __init__(self):
         self.vertices = {}
+
+
+    def gerar_grafo_direcionado(n_vertices, n_arestas, capacidade_max=100):
+        if n_vertices < 2:
+            raise ValueError("Deve haver pelo menos 2 vértices (source e target)")
+        if n_arestas < n_vertices - 1:
+            raise ValueError("Número de arestas deve ser no mínimo n-1 para garantir conectividade")
+
+        grafo = Grafo()
+
+        for i in range(n_vertices):
+            grafo.adicionar_vertice(f"V{i}")
+
+        for i in range(n_vertices - 1):
+            origem = f"V{i}"
+            destino = f"V{i+1}"
+            capacidade = random.randint(1, capacidade_max // 5) * 5
+            grafo.adicionar_aresta(origem, destino, capacidade)
+
+        # Adiciona arestas adicionais aleatórias
+        arestas_adicionais = n_arestas - (n_vertices - 1)
+        tentativas = 0
+        while arestas_adicionais > 0 and tentativas < n_vertices * n_vertices:
+            origem = f"V{random.randint(0, n_vertices - 1)}"
+            destino = f"V{random.randint(0, n_vertices - 1)}"
+            if origem != destino and not any(
+                a.origem.nome == origem and a.destino.nome == destino for a in grafo.arestas
+            ):
+                capacidade = random.randint(1, capacidade_max)
+                grafo.adicionar_aresta(origem, destino, capacidade)
+                arestas_adicionais -= 1
+            tentativas += 1
+
+        return grafo
 
     def adicionar_vertice(self, nome, x=None, y=None):
         if nome not in self.vertices:
