@@ -200,8 +200,7 @@ class Grafo:
                 residual[u][v] = capacidade
                 residual[v][u] = 0
 
-                if aresta.direcao == "bidirectional":
-                    residual[v][u] = capacidade
+                
 
         def bfs(source, sink, parent):
             visited = set()
