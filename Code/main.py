@@ -19,7 +19,7 @@ label_destino.pack(pady=5)
 frame_info.pack()
 
 def exibir_grafo():
-    grafo.exibir_grafo()
+    grafo.exibir_grafo(origem=origem, destino=destino)
 
 def exibir_fluxo():
     grafo.exibir_fluxo_maximo(origem, destino)

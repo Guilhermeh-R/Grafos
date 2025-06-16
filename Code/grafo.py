@@ -121,7 +121,8 @@ class Grafo:
         return grafo, origem, destino
 
 
-    def exibir_grafo(self, escala=5):
+    def exibir_grafo(self, escala=5, origem=None, destino=None):
+        cores = self.gerar_node_colors(origem, destino)
         import matplotlib.pyplot as plt
         import networkx as nx
 
@@ -161,7 +162,7 @@ class Grafo:
         }
 
         plt.figure(figsize=(12, 8))
-        nx.draw(G, pos, with_labels=True, node_size=500, node_color='skyblue', font_size=10, arrows=True)
+        nx.draw(G, pos, with_labels=True, node_size=500, node_color=cores, font_size=10, arrows=True)
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='red', font_size=7)
 
         plt.title("Rede de Distribuição de Água")
@@ -169,6 +170,15 @@ class Grafo:
         plt.tight_layout()
         plt.show()
         
+    def gerar_node_colors(self, origem=None, destino=None):
+        cores = []
+        for nome in self.vertices:
+            if nome == origem or nome==destino:
+                cores.append('green')
+            else:
+                cores.append('skyblue')
+        return cores
+
     def to_networkx(self): #só pra converter pra um grafo da lib que desenha
       G = nx.DiGraph()
       for vertice in self.vertices.values():
@@ -255,6 +265,7 @@ class Grafo:
         return fluxo_valor, fluxo_dict
 
     def exibir_fluxo_maximo(self, origem, destino):
+        cores = self.gerar_node_colors(origem, destino)
         fluxo_valor, fluxo_dict = self.calcular_fluxo_maximo(origem, destino)
         print(f"Fluxo máximo de {origem} para {destino}: {fluxo_valor} m³/dia")
 
@@ -267,7 +278,7 @@ class Grafo:
 
         plt.figure(figsize=(12, 8))
 
-        nx.draw_networkx_nodes(G, pos, node_size=500, node_color='skyblue')
+        nx.draw_networkx_nodes(G, pos, node_size=500, node_color=cores)
         nx.draw_networkx_labels(G, pos, font_size=10)
 
         edge_colors = []
@@ -300,6 +311,7 @@ class Grafo:
         plt.show()
         
     def exibir_fluxo_e_gargalo(self, origem, destino):
+        cores = self.gerar_node_colors(origem, destino)
         fluxo_valor, fluxo_dict = self.calcular_fluxo_maximo(origem, destino)
         print(f"\n💧 Fluxo máximo de {origem} para {destino}: {fluxo_valor} m³/dia")
 
@@ -340,7 +352,7 @@ class Grafo:
 
         # 3. Visualização
         plt.figure(figsize=(12, 8))
-        nx.draw_networkx_nodes(G, pos, node_size=500, node_color='skyblue')
+        nx.draw_networkx_nodes(G, pos, node_size=500, node_color=cores)
         nx.draw_networkx_labels(G, pos, font_size=10)
 
         # Arestas sem fluxo (cinza)
