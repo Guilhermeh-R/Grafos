@@ -68,7 +68,7 @@ class Grafo:
         # Gera vértices com coordenadas únicas
         vertices = []
         usados = set()
-        while len(vertices) < n_vertices:
+        while len( vertices) < n_vertices:
             x, y = random.randint(0, 100), random.randint(0, 100)
             if (x, y) not in usados:
                 nome = str(len(vertices))
@@ -80,7 +80,7 @@ class Grafo:
         destino = vertices[-1]
 
         # Garante conectividade
-        caminho_basico = vertices[:]
+        caminho_basico = vertices[:] 
         random.shuffle(caminho_basico)
         if origem != caminho_basico[0]:
             caminho_basico[0], caminho_basico[caminho_basico.index(origem)] = origem, caminho_basico[0]
@@ -117,7 +117,7 @@ class Grafo:
                                     v, grafo.vertices[v].x, grafo.vertices[v].y,
                                     cap, dist )
             arestas_usadas.add((u, v))
-
+  
         return grafo, origem, destino
 
 
