@@ -193,16 +193,16 @@ class Grafo:
       return G
     
     @staticmethod
-    def fluxo_maximo(grafo, s, t):
+    def fluxo_maximo(self, s, t):
         residual = defaultdict(dict)
         flow = defaultdict(dict)
 
-        for u in grafo.vertices.values():
-            for v in grafo.vertices.values():
+        for u in self.vertices.values():
+            for v in self.vertices.values():
                 residual[u.nome][v.nome] = 0
                 flow[u.nome][v.nome] = 0
 
-        for vertice in grafo.vertices.values():
+        for vertice in self.vertices.values():
             for aresta in vertice.arestas:
                 u = aresta.origem.nome
                 v = aresta.destino.nome
@@ -252,21 +252,19 @@ class Grafo:
             parent = {}
 
         flow_dict = {}
-        for u in grafo.vertices:
+        for u in self.vertices:
             flow_dict[u] = {}
-            for aresta in grafo.vertices[u].arestas:
+            for aresta in self.vertices[u].arestas:
                 v = aresta.destino.nome
                 flow_dict[u][v] = flow[u][v]
 
         return max_flow, flow_dict
 
-    def calcular_fluxo_maximo(self, origem, destino):
-        fluxo_valor, fluxo_dict = self.fluxo_maximo(self, origem, destino)
-        return fluxo_valor, fluxo_dict
+    
 
     def exibir_fluxo_maximo(self, origem, destino):
         cores = self.gerar_node_colors(origem, destino)
-        fluxo_valor, fluxo_dict = self.calcular_fluxo_maximo(origem, destino)
+        fluxo_valor, fluxo_dict = self.fluxo_maximo(self,origem, destino)
         print(f"Fluxo máximo de {origem} para {destino}: {fluxo_valor} m³/dia")
 
         G = self.to_networkx() #apenas converte pra um grafo da biblioteca que desenha
@@ -312,7 +310,7 @@ class Grafo:
         
     def exibir_fluxo_e_gargalo(self, origem, destino):
         cores = self.gerar_node_colors(origem, destino)
-        fluxo_valor, fluxo_dict = self.calcular_fluxo_maximo(origem, destino)
+        fluxo_valor, fluxo_dict = self.fluxo_maximo(self,origem, destino)
         print(f"\n💧 Fluxo máximo de {origem} para {destino}: {fluxo_valor} m³/dia")
 
         G = self.to_networkx()
