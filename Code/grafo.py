@@ -1,10 +1,11 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 from collections import deque, defaultdict
+import random
 
 class Vertice:
     def __init__(self, nome, x=None, y=None):
-        self.nome = nome
+        self.nome = nome 
         self.x = x
         self.y = y
         self.arestas = []
@@ -17,16 +18,15 @@ class Vertice:
 
 
 class Aresta:
-    def __init__(self, origem, destino, capacidade, distancia, direcao):
+    def __init__(self, origem, destino, capacidade, distancia):
         self.origem = origem  
+        self.distancia = distancia 
         self.destino = destino  
         self.capacidade = capacidade
-        self.distancia = distancia
-        self.direcao = direcao 
 
     def __repr__(self):
         return (f"Aresta({self.origem.nome} -> {self.destino.nome}, "
-                f"capacidade={self.capacidade}, distancia={self.distancia}, direcao={self.direcao})")
+                f"capacidade={self.capacidade}, distancia={self.distancia})")
 
 
 class Grafo:
@@ -46,18 +46,83 @@ class Grafo:
 
     def adicionar_aresta(self, nome_origem, x_origem, y_origem,
                          nome_destino, x_destino, y_destino,
-                         capacidade, distancia, direcao):
+                         capacidade, distancia):
         origem = self.adicionar_vertice(nome_origem, x_origem, y_origem)
         destino = self.adicionar_vertice(nome_destino, x_destino, y_destino)
-
-        aresta = Aresta(origem, destino, capacidade, distancia, direcao)
+        aresta = Aresta(origem, destino, capacidade, distancia)
         origem.adicionar_aresta(aresta)
 
-        if direcao == "bidirectional":
-            aresta_reversa = Aresta(destino, origem, capacidade, distancia, direcao)
-            destino.adicionar_aresta(aresta_reversa)
+        
 
-    def exibir_grafo(self, escala=5):
+    def gerar_grafo_direcionado(n_vertices, n_arestas, capacidade_min=5, capacidade_max=100):
+        if n_vertices < 2:
+            raise ValueError("Deve haver pelo menos 2 vértices (source e target)")
+        max_arestas_possiveis = (n_vertices * (n_vertices - 1)) // 2
+        if n_arestas < n_vertices - 1:
+            raise ValueError("Número de arestas deve ser no mínimo n-1 para garantir conectividade")
+        if n_arestas > max_arestas_possiveis:
+            raise ValueError(f"Máximo de arestas sem inversas ou paralelas é {max_arestas_possiveis} para {n_vertices} vértices.")
+
+        grafo = Grafo()
+
+        # Gera vértices com coordenadas únicas
+        vertices = []
+        usados = set()
+        while len( vertices) < n_vertices:
+            x, y = random.randint(0, 100), random.randint(0, 100)
+            if (x, y) not in usados:
+                nome = str(len(vertices))
+                grafo.adicionar_vertice(nome, x, y)
+                vertices.append(nome)
+                usados.add((x, y))
+
+        origem = vertices[0]
+        destino = vertices[-1]
+
+        # Garante conectividade
+        caminho_basico = vertices[:] 
+        random.shuffle(caminho_basico)
+        if origem != caminho_basico[0]:
+            caminho_basico[0], caminho_basico[caminho_basico.index(origem)] = origem, caminho_basico[0]
+        if destino != caminho_basico[-1]:
+            caminho_basico[-1], caminho_basico[caminho_basico.index(destino)] = destino, caminho_basico[-1]
+
+        arestas_usadas = set()
+        for i in range(len(caminho_basico) - 1):
+            u = caminho_basico[i]
+            v = caminho_basico[i + 1]
+
+            if (u, v) in arestas_usadas or (v, u) in arestas_usadas:
+                continue
+            if v == origem or u == destino:
+                continue  # impede chegada na origem e saída do destino
+
+            cap = random.choice(range(capacidade_min, capacidade_max + 1, 5))
+            dist = random.uniform(1.0, 10.0)
+            grafo.adicionar_aresta(u, grafo.vertices[u].x, grafo.vertices[u].y,
+                                    v, grafo.vertices[v].x, grafo.vertices[v].y,
+                                    cap, dist)
+            arestas_usadas.add((u, v))
+
+    
+        while len(arestas_usadas) < n_arestas:
+            u, v = random.sample(vertices, 2)
+            if u == v or (u, v) in arestas_usadas or (v, u) in arestas_usadas:
+                continue
+            if v == origem or u == destino:
+                continue  # mantém regras de fluxo: origem só sai, destino só entra
+            cap = random.choice(range(capacidade_min, capacidade_max + 1, 5))
+            dist = random.uniform(1.0, 10.0)
+            grafo.adicionar_aresta(u, grafo.vertices[u].x, grafo.vertices[u].y,
+                                    v, grafo.vertices[v].x, grafo.vertices[v].y,
+                                    cap, dist )
+            arestas_usadas.add((u, v))
+  
+        return grafo, origem, destino
+
+
+    def exibir_grafo(self, escala=5, origem=None, destino=None):
+        cores = self.gerar_node_colors(origem, destino)
         import matplotlib.pyplot as plt
         import networkx as nx
 
@@ -97,7 +162,7 @@ class Grafo:
         }
 
         plt.figure(figsize=(12, 8))
-        nx.draw(G, pos, with_labels=True, node_size=500, node_color='skyblue', font_size=10, arrows=True)
+        nx.draw(G, pos, with_labels=True, node_size=500, node_color=cores, font_size=10, arrows=True)
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='red', font_size=7)
 
         plt.title("Rede de Distribuição de Água")
@@ -105,6 +170,15 @@ class Grafo:
         plt.tight_layout()
         plt.show()
         
+    def gerar_node_colors(self, origem=None, destino=None):
+        cores = []
+        for nome in self.vertices:
+            if nome == origem or nome==destino:
+                cores.append('green')
+            else:
+                cores.append('skyblue')
+        return cores
+
     def to_networkx(self): #só pra converter pra um grafo da lib que desenha
       G = nx.DiGraph()
       for vertice in self.vertices.values():
@@ -136,8 +210,7 @@ class Grafo:
                 residual[u][v] = capacidade
                 residual[v][u] = 0
 
-                if aresta.direcao == "bidirectional":
-                    residual[v][u] = capacidade
+                
 
         def bfs(source, sink, parent):
             visited = set()
@@ -192,6 +265,7 @@ class Grafo:
         return fluxo_valor, fluxo_dict
 
     def exibir_fluxo_maximo(self, origem, destino):
+        cores = self.gerar_node_colors(origem, destino)
         fluxo_valor, fluxo_dict = self.calcular_fluxo_maximo(origem, destino)
         print(f"Fluxo máximo de {origem} para {destino}: {fluxo_valor} m³/dia")
 
@@ -204,7 +278,7 @@ class Grafo:
 
         plt.figure(figsize=(12, 8))
 
-        nx.draw_networkx_nodes(G, pos, node_size=500, node_color='skyblue')
+        nx.draw_networkx_nodes(G, pos, node_size=500, node_color=cores)
         nx.draw_networkx_labels(G, pos, font_size=10)
 
         edge_colors = []
@@ -237,6 +311,7 @@ class Grafo:
         plt.show()
         
     def exibir_fluxo_e_gargalo(self, origem, destino):
+        cores = self.gerar_node_colors(origem, destino)
         fluxo_valor, fluxo_dict = self.calcular_fluxo_maximo(origem, destino)
         print(f"\n💧 Fluxo máximo de {origem} para {destino}: {fluxo_valor} m³/dia")
 
@@ -277,7 +352,7 @@ class Grafo:
 
         # 3. Visualização
         plt.figure(figsize=(12, 8))
-        nx.draw_networkx_nodes(G, pos, node_size=500, node_color='skyblue')
+        nx.draw_networkx_nodes(G, pos, node_size=500, node_color=cores)
         nx.draw_networkx_labels(G, pos, font_size=10)
 
         # Arestas sem fluxo (cinza)
