@@ -3,73 +3,84 @@ import tkinter as tk
 from tkinter import messagebox
 from grafo import Grafo
 
-grafo, origem, destino = Grafo.gerar_grafo_direcionado(2, 1)
 root = tk.Tk()
 root.title("Fluxo de Abastecimento")
-root.geometry("500x500")
+root.geometry("600x600")
 
 label_titulo = tk.Label(root, text="Fluxo de Abastecimento - Escolha uma opção:", font=("Arial", 14))
 label_titulo.pack(pady=10)
 
 frame_info = tk.Frame(root)
-label_origem = tk.Label(frame_info, text=f"Origem: {origem}", font=("Arial", 12))
-label_destino = tk.Label(frame_info, text=f"Destino: {destino}", font=("Arial", 12))
-label_origem.pack(pady=5)
-label_destino.pack(pady=5)
+label_fontes = tk.Label(frame_info, text=f"Fontes: ", font=("Arial", 12))
+label_destinos = tk.Label(frame_info, text=f"Destinos: ", font=("Arial", 12))
+label_fontes.pack(pady=5)
+label_destinos.pack(pady=5)
 frame_info.pack()
 
 def exibir_grafo():
-    grafo.exibir_grafo(origem=origem, destino=destino)
+    grafo.exibir_grafo()
 
 def exibir_fluxo():
-    grafo.exibir_fluxo_maximo(origem, destino)
+    grafo.exibir_fluxo_maximo(fontes, destinos)
 
 def calcular_fluxo():
     tempo_inicio = time.time()
-    fluxoValor, _ = grafo.fluxo_maximo(grafo, origem, destino)
+    fluxoValor, _ = grafo.fluxo_maximo(grafo, fontes, destinos)
     tempo_final = time.time()
     duracao = tempo_final - tempo_inicio
     messagebox.showinfo(
         "Fluxo Máximo",
-        f"Fluxo máximo de '{origem}' para '{destino}': {fluxoValor} m³/dia\n"
+        f"Fluxo máximo entre todas as fontes e destinos: {fluxoValor} m³/dia\n"
         f"Tempo de execução: {duracao:.6f} segundos"
     )
 
 def sugerir_cano():
-    grafo.exibir_fluxo_e_gargalo(origem, destino)
+    grafo.exibir_fluxo_e_gargalo(fontes, destinos)
 
 def sair():
     root.destroy()
 
 def gerar_novo_grafo():
-    global grafo, origem, destino
+    global grafo, fontes, destinos
     try:
         n = int(entry_vertices.get())
         m = int(entry_arestas.get())
+        n_fontes = int(entry_fontes.get())
+        n_destinos = int(entry_destinos.get())
+
         tempo_inicio = time.time()
-        grafo, origem, destino = Grafo.gerar_grafo_direcionado(n, m)
+        grafo, fontes, destinos = Grafo.gerar_grafo_direcionado(n, m, n_fontes, n_destinos)
         tempo_final = time.time()
         duracao = tempo_final - tempo_inicio
-        label_origem.config(text=f"Origem: {origem}")
-        label_destino.config(text=f"Destino: {destino}")
-        messagebox.showinfo("Novo Grafo", f"Grafo com {n} vértices e {m} arestas gerado com sucesso!\n"
-                                            f"Tempo de geração: {duracao:.6f} segundos")
+
+        label_fontes.config(text=f"Fontes: {', '.join(fontes)}")
+        label_destinos.config(text=f"Destinos: {', '.join(destinos)}")
+
+        messagebox.showinfo("Novo Grafo", f"Grafo com {n} vértices, {m} arestas, {n_fontes} fontes e {n_destinos} destinos gerado com sucesso!\n"
+                                          f"Tempo de geração: {duracao:.6f} segundos")
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao gerar grafo: {e}")
 
 frame_entrada = tk.Frame(root)
+
 tk.Label(frame_entrada, text="Vértices:").grid(row=0, column=0, padx=5)
 entry_vertices = tk.Entry(frame_entrada, width=5)
-entry_vertices.insert(0, "")
 entry_vertices.grid(row=0, column=1, padx=5)
 
 tk.Label(frame_entrada, text="Arestas:").grid(row=0, column=2, padx=5)
 entry_arestas = tk.Entry(frame_entrada, width=5)
-entry_arestas.insert(0, "")
 entry_arestas.grid(row=0, column=3, padx=5)
 
+tk.Label(frame_entrada, text="Fontes:").grid(row=1, column=0, padx=5)
+entry_fontes = tk.Entry(frame_entrada, width=5)
+entry_fontes.grid(row=1, column=1, padx=5)
+
+tk.Label(frame_entrada, text="Destinos:").grid(row=1, column=2, padx=5)
+entry_destinos = tk.Entry(frame_entrada, width=5)
+entry_destinos.grid(row=1, column=3, padx=5)
+
 botao_gerar = tk.Button(frame_entrada, text="Gerar Grafo", command=gerar_novo_grafo)
-botao_gerar.grid(row=0, column=4, padx=10)
+botao_gerar.grid(row=0, column=4, rowspan=2, padx=10, sticky="ns")
 
 frame_entrada.pack(pady=10)
 

@@ -54,21 +54,24 @@ class Grafo:
 
         
 
-    def gerar_grafo_direcionado(n_vertices, n_arestas, capacidade_min=5, capacidade_max=100):
-        if n_vertices < 2:
-            raise ValueError("Deve haver pelo menos 2 vértices (source e target)")
-        max_arestas_possiveis = (n_vertices * (n_vertices - 1)) // 2
-        if n_arestas < n_vertices - 1:
-            raise ValueError("Número de arestas deve ser no mínimo n-1 para garantir conectividade")
-        if n_arestas > max_arestas_possiveis:
-            raise ValueError(f"Máximo de arestas sem inversas ou paralelas é {max_arestas_possiveis} para {n_vertices} vértices.")
+    def gerar_grafo_direcionado(n_vertices, n_arestas, n_sources, n_sinks,
+                                capacidade_min=5, capacidade_max=100):
+        if n_vertices < (n_sources + n_sinks):
+            raise ValueError(f"Precisa de pelo menos {n_sources + n_sinks} vértices para comportar {n_sources} fontes e {n_sinks} sumidouros.")
+
+        max_arestas_sem_bidirecionais = n_sources * (n_vertices - n_sources) + \
+                                        (n_vertices - n_sources - n_sinks) * n_sinks + \
+                                        ((n_vertices - n_sources - n_sinks) * (n_vertices - 1))
+        if n_arestas < (n_vertices - 1):
+            raise ValueError("Número de arestas precisa ser no mínimo n-1 para garantir conectividade.")
+        if n_arestas > max_arestas_sem_bidirecionais:
+            raise ValueError(f"Número de arestas muito alto para este número de vértices/sources/sinks sem duplicatas e loops.")
 
         grafo = Grafo()
 
-        # Gera vértices com coordenadas únicas
         vertices = []
         usados = set()
-        while len( vertices) < n_vertices:
+        while len(vertices) < n_vertices:
             x, y = random.randint(0, 100), random.randint(0, 100)
             if (x, y) not in usados:
                 nome = str(len(vertices))
@@ -76,49 +79,57 @@ class Grafo:
                 vertices.append(nome)
                 usados.add((x, y))
 
-        origem = vertices[0]
-        destino = vertices[-1]
-
-        # Garante conectividade
-        caminho_basico = vertices[:] 
-        random.shuffle(caminho_basico)
-        if origem != caminho_basico[0]:
-            caminho_basico[0], caminho_basico[caminho_basico.index(origem)] = origem, caminho_basico[0]
-        if destino != caminho_basico[-1]:
-            caminho_basico[-1], caminho_basico[caminho_basico.index(destino)] = destino, caminho_basico[-1]
+        random.shuffle(vertices)
+        fontes = vertices[:n_sources]
+        sumidouros = vertices[-n_sinks:]
+        intermediarios = vertices[n_sources:n_vertices - n_sinks]
 
         arestas_usadas = set()
-        for i in range(len(caminho_basico) - 1):
-            u = caminho_basico[i]
-            v = caminho_basico[i + 1]
+
+        todos_vizinhos = fontes + intermediarios + sumidouros
+        for v in intermediarios:
+            possiveis_origens = fontes + [u for u in intermediarios if u != v]
+            possiveis_destinos = sumidouros + [u for u in intermediarios if u != v]
+
+            if not possiveis_origens or not possiveis_destinos:
+                continue
+
+            origem = random.choice(possiveis_origens)
+            destino = random.choice(possiveis_destinos)
+
+            if origem == destino or (origem, destino) in arestas_usadas or (destino, origem) in arestas_usadas:
+                continue
+
+            cap = random.choice(range(capacidade_min, capacidade_max + 1, 5))
+            dist = random.uniform(1.0, 10.0)
+            grafo.adicionar_aresta(origem, grafo.vertices[origem].x, grafo.vertices[origem].y,
+                                   destino, grafo.vertices[destino].x, grafo.vertices[destino].y,
+                                   cap, dist)
+            arestas_usadas.add((origem, destino))
+
+        while len(arestas_usadas) < n_arestas:
+            u, v = random.sample(vertices, 2)
+
+            if u == v:
+                continue
 
             if (u, v) in arestas_usadas or (v, u) in arestas_usadas:
                 continue
-            if v == origem or u == destino:
-                continue  # impede chegada na origem e saída do destino
+
+            if v in fontes:
+                continue  
+            if u in sumidouros:
+                continue  
 
             cap = random.choice(range(capacidade_min, capacidade_max + 1, 5))
             dist = random.uniform(1.0, 10.0)
             grafo.adicionar_aresta(u, grafo.vertices[u].x, grafo.vertices[u].y,
-                                    v, grafo.vertices[v].x, grafo.vertices[v].y,
-                                    cap, dist)
+                                v, grafo.vertices[v].x, grafo.vertices[v].y,
+                                cap, dist)
             arestas_usadas.add((u, v))
 
-    
-        while len(arestas_usadas) < n_arestas:
-            u, v = random.sample(vertices, 2)
-            if u == v or (u, v) in arestas_usadas or (v, u) in arestas_usadas:
-                continue
-            if v == origem or u == destino:
-                continue  # mantém regras de fluxo: origem só sai, destino só entra
-            cap = random.choice(range(capacidade_min, capacidade_max + 1, 5))
-            dist = random.uniform(1.0, 10.0)
-            grafo.adicionar_aresta(u, grafo.vertices[u].x, grafo.vertices[u].y,
-                                    v, grafo.vertices[v].x, grafo.vertices[v].y,
-                                    cap, dist )
-            arestas_usadas.add((u, v))
-  
-        return grafo, origem, destino
+
+        return grafo, fontes, sumidouros
 
 
     def exibir_grafo(self, escala=5, origem=None, destino=None):
