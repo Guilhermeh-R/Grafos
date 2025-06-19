@@ -21,11 +21,14 @@ def exibir_grafo():
     grafo.exibir_grafo()
 
 def exibir_fluxo():
-    grafo.exibir_fluxo_maximo(fontes, destinos)
+    if not fontes or not destinos:
+        messagebox.showerror("Erro", "Fontes ou destinos não definidos.")
+        return
+    grafo.exibir_fluxo_maximo(fontes, destinos)       # agora funciona com listas
 
 def calcular_fluxo():
     tempo_inicio = time.time()
-    fluxoValor, _ = grafo.fluxo_maximo(grafo, fontes, destinos)
+    fluxoValor, _ = grafo.fluxo_maximo_multi(fontes, destinos)
     tempo_final = time.time()
     duracao = tempo_final - tempo_inicio
     messagebox.showinfo(

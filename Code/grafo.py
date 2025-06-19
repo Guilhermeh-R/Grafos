@@ -271,127 +271,138 @@ class Grafo:
 
         return max_flow, flow_dict
 
+    def fluxo_maximo_multi(self, fontes, destinos):
+        """
+        Calcula o fluxo máximo entre múltiplas fontes e múltiplos destinos.
+        """
+        from copy import deepcopy
+
+        # Clona o grafo atual para não modificar o original
+        G = deepcopy(self)
+
+        # Cria dois novos vértices: super origem e super destino
+        s_prime = str(max(map(int, G.vertices.keys())) + 1)
+        t_prime = str(int(s_prime) + 1)
+        G.adicionar_vertice(s_prime, x=0, y=0)
+        G.adicionar_vertice(t_prime, x=100, y=100)
+
+        INFINITY = 10**9  # Capacidade muito alta para simular infinito
+
+        # Liga super origem às fontes
+        for fonte in fontes:
+            G.adicionar_aresta(s_prime, 0, 0, fonte, G.vertices[fonte].x, G.vertices[fonte].y, INFINITY, 0)
+
+        # Liga destinos ao super destino
+        for destino in destinos:
+            G.adicionar_aresta(destino, G.vertices[destino].x, G.vertices[destino].y, t_prime, 100, 100, INFINITY, 0)
+
+        # Calcula fluxo máximo de s' para t'
+        fluxo, fluxo_dict = G.fluxo_maximo(G, s_prime, t_prime)
+
+        return fluxo, fluxo_dict
+
+
     def calcular_fluxo_maximo(self, origem, destino):
         fluxo_valor, fluxo_dict = self.fluxo_maximo(self, origem, destino)
         return fluxo_valor, fluxo_dict
 
+    # ------------------------------------------------------------------ #
+    # Exibe fluxo; agora aceita str ou lista                             #
+    # ------------------------------------------------------------------ #
     def exibir_fluxo_maximo(self, origem, destino):
-        cores = self.gerar_node_colors(origem, destino)
-        fluxo_valor, fluxo_dict = self.calcular_fluxo_maximo(origem, destino)
-        print(f"Fluxo máximo de {origem} para {destino}: {fluxo_valor} m³/dia")
+        # converte para listas se vier string
+        origens  = origem  if isinstance(origem,  (list, tuple, set)) else [origem]
+        destinos = destino if isinstance(destino, (list, tuple, set)) else [destino]
 
-        G = self.to_networkx() #apenas converte pra um grafo da biblioteca que desenha
-        pos = {
-            nome: (v.x, v.y)
-            for nome, v in self.vertices.items()
-            if v.x is not None and v.y is not None
-        }
+        # calcula fluxo multi ou simples
+        if len(origens) == 1 and len(destinos) == 1:
+            fluxo_valor, fluxo_dict = self.fluxo_maximo(origens[0], destinos[0])
+        else:
+            fluxo_valor, fluxo_dict = self.fluxo_maximo_multi(origens, destinos)
+
+        print(f"Fluxo máximo: {fluxo_valor} m³/dia")
+
+        G = self.to_networkx()                       # grafo para desenho
+        pos = {n: (v.x, v.y) for n, v in self.vertices.items() if v.x is not None}
+
+        cores = ["green" if n in origens else
+                "orange" if n in destinos else
+                "skyblue" for n in self.vertices]
 
         plt.figure(figsize=(12, 8))
-
         nx.draw_networkx_nodes(G, pos, node_size=500, node_color=cores)
         nx.draw_networkx_labels(G, pos, font_size=10)
 
-        edge_colors = []
-        edge_labels_fluxo = {}       
-        edge_labels_capacidade = {} 
-
+        edge_colors, edge_labels = [], {}
         for u, v, data in G.edges(data=True):
-            capacidade = int(data['capacity'])
+            if u not in self.vertices or v not in self.vertices:
+                continue                            # ignora arestas de s', t'
+            cap  = int(data["capacity"])
             fluxo = int(fluxo_dict.get(u, {}).get(v, 0))
+            edge_colors.append("red" if fluxo else "gray")
+            edge_labels[(u, v)] = f"{fluxo}/{cap}"
 
-            if fluxo > 0:
-                edge_colors.append('red')
-                edge_labels_fluxo[(u, v)] = f"{fluxo}/{capacidade} m³"
-            else:
-                edge_colors.append('gray')
-                edge_labels_capacidade[(u, v)] = f"0/{capacidade} m³"
-
-        # Desenha as arestas
-        nx.draw_networkx_edges(G, pos, arrowstyle='-|>', arrowsize=15, edge_color=edge_colors)
-
-        # Primeiro desenha os rótulos cinza
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels_capacidade, font_color='gray', font_size=8)
-
-        # Depois desenha os rótulos vermelhos (sobrepõe visualmente, são os do fluxo máximo)
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels_fluxo, font_color='red', font_size=10)
-
-        plt.title(f"Fluxo Máximo de {origem} para {destino}: {fluxo_valor} m³/dia")
-        plt.axis('off')
+        nx.draw_networkx_edges(G, pos, edge_color=edge_colors, arrowstyle='-|>', arrowsize=15)
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=9, font_color="red")
+        plt.title("Fluxo máximo (origens verdes, destinos laranja)")
+        plt.axis("off")
         plt.tight_layout()
         plt.show()
-        
+
+    # ------------------------------------------------------------------ #
+    # Exibe fluxo + gargalo; agora aceita str ou lista                   #
+    # ------------------------------------------------------------------ #
     def exibir_fluxo_e_gargalo(self, origem, destino):
-        cores = self.gerar_node_colors(origem, destino)
-        fluxo_valor, fluxo_dict = self.calcular_fluxo_maximo(origem, destino)
-        print(f"\n💧 Fluxo máximo de {origem} para {destino}: {fluxo_valor} m³/dia")
+        origens  = origem  if isinstance(origem,  (list, tuple, set)) else [origem]
+        destinos = destino if isinstance(destino, (list, tuple, set)) else [destino]
+
+        if len(origens) == 1 and len(destinos) == 1:
+            fluxo_valor, fluxo_dict = self.fluxo_maximo(origens[0], destinos[0])
+        else:
+            fluxo_valor, fluxo_dict = self.fluxo_maximo_multi(origens, destinos)
+
+        print(f"💧 Fluxo máximo total: {fluxo_valor} m³/dia")
 
         G = self.to_networkx()
-        pos = {
-            nome: (v.x, v.y)
-            for nome, v in self.vertices.items()
-            if v.x is not None and v.y is not None
-        }
+        pos = {n: (v.x, v.y) for n, v in self.vertices.items() if v.x is not None}
 
-        # 1. Identifica gargalos
-        gargalos = []
-        for u, v in G.edges():
-            capacidade = int(G[u][v]['capacity'])
-            fluxo = int(fluxo_dict.get(u, {}).get(v, 0))
-            if fluxo == capacidade and capacidade > 0:
-                gargalos.append((u, v, capacidade))
+        cores = ["green" if n in origens else
+                "orange" if n in destinos else
+                "skyblue" for n in self.vertices]
 
+        # identifica gargalos
+        gargalos = [(u, v, int(G[u][v]["capacity"]))
+                    for u, v in G.edges()
+                    if int(fluxo_dict.get(u, {}).get(v, 0)) == int(G[u][v]["capacity"])]
         gargalo_critico = min(gargalos, key=lambda x: x[2]) if gargalos else None
 
-        # 2. Coleta rótulos e classifica arestas
-        edge_labels_vermelho = {}
-        edge_labels_preto = {}
-        fluxo_positivo = []
-        sem_fluxo = []
-
-        for u, v in G.edges():
-            capacidade = int(G[u][v]['capacity'])
-            fluxo = int(fluxo_dict.get(u, {}).get(v, 0))
-            label = f"{fluxo}/{capacidade}"
-
-            if fluxo > 0:
-                fluxo_positivo.append((u, v))
-                edge_labels_vermelho[(u, v)] = label
-            else:
-                sem_fluxo.append((u, v))
-                edge_labels_preto[(u, v)] = label
-
-        # 3. Visualização
         plt.figure(figsize=(12, 8))
         nx.draw_networkx_nodes(G, pos, node_size=500, node_color=cores)
         nx.draw_networkx_labels(G, pos, font_size=10)
 
-        # Arestas sem fluxo (cinza)
-        nx.draw_networkx_edges(G, pos, edgelist=sem_fluxo, edge_color='gray', arrows=True, arrowstyle='-|>', arrowsize=15)
+        edge_labels, cores_ar = {}, []
+        for u, v, data in G.edges(data=True):
+            if u not in self.vertices or v not in self.vertices:
+                continue
+            cap  = int(data["capacity"])
+            fluxo = int(fluxo_dict.get(u, {}).get(v, 0))
+            edge_labels[(u, v)] = f"{fluxo}/{cap}"
+            cor = "blue" if gargalo_critico and (u, v) == gargalo_critico[:2] else \
+                "red" if fluxo else "gray"
+            cores_ar.append(cor)
 
-        # Arestas com fluxo (vermelho)
-        nx.draw_networkx_edges(G, pos, edgelist=fluxo_positivo, edge_color='red', arrows=True, arrowstyle='-|>', arrowsize=15)
+        nx.draw_networkx_edges(G, pos, edge_color=cores_ar, arrowstyle='-|>', arrowsize=15, width=2)
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=8, font_color="red")
 
-        # Gargalo (azul por cima)
         if gargalo_critico:
-            u, v, cap = gargalo_critico
-            nx.draw_networkx_edges(G, pos, edgelist=[(u, v)], edge_color='blue', width=3.5, arrows=True, arrowstyle='-|>', arrowsize=20)
-            plt.title("Recomendação: aumentar a capacidade desse cano (linha azul no grafo).")
+            plt.title("Gargalo em azul – considere aumentar a capacidade.")
         else:
-            plt.title("Nenhum gargalo detectado — nenhuma aresta totalmente saturada.")
+            plt.title("Nenhum gargalo detectado.")
 
-        # Labels: primeiro preto (sem fluxo), depois vermelho, depois o gargalo por cima
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels_preto, font_size=9, font_color='black')
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels_vermelho, font_size=9, font_color='red')
-
-        if gargalo_critico:
-            u, v, _ = gargalo_critico
-            label = edge_labels_vermelho.get((u, v), "")
-            nx.draw_networkx_edge_labels(G, pos, edge_labels={(u, v): label}, font_size=10, font_color='red', font_weight='bold')
-
-        plt.axis('off')
+        plt.axis("off")
         plt.tight_layout()
         plt.show()
+
     
     @staticmethod
     def desenhar_rede_residual(self, grafo_original, fluxo_dict):
