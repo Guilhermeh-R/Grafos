@@ -132,6 +132,16 @@ class Grafo:
         return grafo, fontes, sumidouros
 
 
+    def remover_vertice(self, nome_vertice):
+        if nome_vertice not in self.vertices:
+            raise ValueError(f"Vértice '{nome_vertice}' não encontrado no grafo.")
+
+        for vertice in self.vertices.values():
+            vertice.arestas = [a for a in vertice.arestas if a.destino.nome != nome_vertice]
+
+        del self.vertices[nome_vertice]
+
+
     def exibir_grafo(self, escala=5, origem=None, destino=None):
         cores = self.gerar_node_colors(origem, destino)
         import matplotlib.pyplot as plt
